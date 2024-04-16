@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 
 class MultiplicationTableController extends Controller
 {
@@ -30,8 +31,15 @@ class MultiplicationTableController extends Controller
         if (!is_numeric($number) || !($number >= 1 && $number <= 100)) {
             return response()->json(['error' => 'Given value is not a number from range 1-100'], 422);
         }
-        
-        $result = $this->makeTable($number);
+
+        $cacheKey = 'table_' . $number;
+
+        if(Cache::has($cacheKey)){
+            $result = Cache::get($cacheKey);
+        }else{
+            $result = $this->makeTable($number);
+            Cache::add($cacheKey, $result);
+        }
 
         return response()->json($result);
     }
